@@ -8,3 +8,22 @@ enum ResponseStatus {
     INTERNAL_ERROR = 500
 }
 
+abstract class ApiResponse {
+    constructor(
+        protected status: ResponseStatus,
+        protected message: string
+    ) {}
+
+    protected prepare<T extends ApiResponse>(
+        res: Response,
+        response: T,
+        headers: { [key: string]: string }
+    ): Response {
+        for (const [key, value] of Object.entries(headers)) res.append(key, value);
+        return res.status(this.status)
+    }
+
+    private static sanitize<T extends ApiResponse>(response: T): T {
+        
+    }
+}
