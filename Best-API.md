@@ -223,8 +223,3 @@ Si tu veux aller encore plus loin :
 - Compatible avec OpenTelemetry pour le tracing distribué !
 
 ---
-
-Veux-tu que je te prépare aussi :
-- une **démo d'utilisation** de cette `ApiResponse` dans un vrai **contrôleur Express** (`userController.ts`) ?
-Cela te montrerait exactement **comment utiliser tout ça en pratique** dans un projet 🛠️.  
-(je peux te faire une petite app Express vite fait si tu veux 🚀)
