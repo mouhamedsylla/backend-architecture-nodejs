@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 enum ResponseStatus {
     SUCCESS = 200,
@@ -14,16 +14,19 @@ interface MetaData {
     processingTimeMs?: number;
 }
 
+
+
 abstract class ApiResponse<T = any> {
     constructor(
         protected status: ResponseStatus,
         protected message: string,
-        protected data?: T
+        protected data?: T,
+        protected startTime?: number
     ) {}
 
     protected prepare(
+        req: Request,
         res: Response,
-        req: Response['req'],
         headers: { [key: string]: string } = {},
     ): Response {
         for (const [key, value] of Object.entries(headers)) {
@@ -32,18 +35,24 @@ abstract class ApiResponse<T = any> {
         return res.status(this.status).json(this.sanitize(req))
     }
 
-    public send(res: Response, req: Response['req'], headers: { [key: string]: string } = {}): Response  {
-        return this.prepare(res, req, headers);
+    public send(req: Request, res: Response, headers: { [key: string]: string } = {}): Response  {
+        return this.prepare(req, res, headers);
     }
 
-    private buildMetaData(req: Response['req']): MetaData {
-        return {
+    private buildMetaData(req: Request): MetaData {
+        const meta: MetaData = {
             timestamp: new Date().toISOString(),
             path: req.originalUrl
         }
+
+        if (this.startTime) {
+            meta.processingTimeMs = Date.now() - this.startTime;
+        }
+
+        return meta
     }
 
-    private sanitize(req: Response['req']) {
+    private sanitize(req: Request) {
         const responseBody: Record<string, any> = {
             message: this.message,
             meta: this.buildMetaData(req)
@@ -57,14 +66,14 @@ abstract class ApiResponse<T = any> {
     }
 }
 
-class SuccessResponse<T> extends ApiResponse<T> {
+export class SuccessResponse<T> extends ApiResponse<T> {
     constructor(message: string, data?: T) {
-        super(ResponseStatus.SUCCESS, message, data);
+        super(ResponseStatus.SUCCESS, message, data, Date.now());
     }
 }
 
-class FailureResponse extends ApiResponse {
+export class FailureResponse extends ApiResponse {
     constructor(message: string) {
-        super(ResponseStatus.BAD_REQUEST, message, undefined);
+        super(ResponseStatus.BAD_REQUEST, message, undefined, Date.now());
     }
 }
